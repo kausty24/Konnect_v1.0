@@ -14,6 +14,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.SpringBootEmail.Entity.EmailDetails;
+import com.SpringBootEmail.Entity.EmailHelper;
 import com.app.custom_exception.ResourceNotFoundException;
 import com.app.dao.BidRepository;
 import com.app.dao.CustomerRepository;
@@ -32,7 +34,6 @@ import com.app.entities.OrderStatus;
 import com.app.entities.OrderStatusType;
 import com.app.entities.Vendor;
 
-
 @Service
 @Transactional
 public class OrderServices implements IOrderService {
@@ -49,7 +50,8 @@ public class OrderServices implements IOrderService {
 	private VendorRepository vendorRepo;
 	@Autowired
 	private BidRepository bidRepo;
-
+	@Autowired
+	private EmailService emailService;
 	@Autowired
 	private ModelMapper mapper;
 
@@ -68,12 +70,13 @@ public class OrderServices implements IOrderService {
 
 			@Override
 			public void run() {
-				
-				Order order = orderRepo.findById(persistentOrder.getId()).orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
+
+				Order order = orderRepo.findById(persistentOrder.getId())
+						.orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
 				// TODO Auto-generated method stub
 				if (order.getLockoutTimeInMinutes() == 0) {
 					System.out.println("Order-" + order.getId() + " bidding over");
-					if(order.getOrderStatus().getOrderStatusType() == OrderStatusType.NEW) {
+					if (order.getOrderStatus().getOrderStatusType() == OrderStatusType.NEW) {
 						order.setOrderStatus(orderStatusRepo.findByOrderStatusType(OrderStatusType.BIDDING_OVER));
 					}
 					orderRepo.save(order);
@@ -130,11 +133,11 @@ public class OrderServices implements IOrderService {
 		// add logic to delete all bids corresponding to that order first
 		Order order = orderRepo.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
 		bidRepo.findByOrder(order).stream().forEach(bidRepo::delete);
-		
-		// logic to delete order 
+
+		// logic to delete order
 		orderRepo.deleteById(orderId);
 		// add logic to delete temporary table
-		//orderRepo.dropTemporaryTable("temp_table_" + orderId);
+		// orderRepo.dropTemporaryTable("temp_table_" + orderId);
 	}
 
 	@Override
@@ -177,7 +180,8 @@ public class OrderServices implements IOrderService {
 				.orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
 		Bid bid = bidRepo.findByVendorAndOrder(v, o).orElseThrow(() -> new ResourceNotFoundException("Bid Not Found"));
 		bidRepo.delete(bid);
-		//orderRepo.deleteBid("temp_table_" + deleteBidDTO.getOrderId(), deleteBidDTO.getVendorId());
+		// orderRepo.deleteBid("temp_table_" + deleteBidDTO.getOrderId(),
+		// deleteBidDTO.getVendorId());
 	}
 
 	@Override
@@ -186,12 +190,16 @@ public class OrderServices implements IOrderService {
 		Order order = orderRepo.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
 		order.setOrderStatus(orderStatusRepo.findByOrderStatusType(OrderStatusType.COMPLETED));
 		order.setRating(rating);
-		// logic to update the vendor Rating when order status is set to completed by the customer and rating is provided
-		OptionalDouble optionalRating = orderRepo.findByFinalVendorAndOrderStatus(order.getFinalVendor(), orderStatusRepo.findByOrderStatusType(OrderStatusType.COMPLETED))
-			.stream().mapToDouble(o->o.getRating()).average();
+		// logic to update the vendor Rating when order status is set to completed by
+		// the customer and rating is provided
+		OptionalDouble optionalRating = orderRepo
+				.findByFinalVendorAndOrderStatus(order.getFinalVendor(),
+						orderStatusRepo.findByOrderStatusType(OrderStatusType.COMPLETED))
+				.stream().mapToDouble(o -> o.getRating()).average();
 		System.out.println("5" + " | " + optionalRating);
-		if(optionalRating.isPresent())
+		if (optionalRating.isPresent())
 			order.getFinalVendor().setRating(optionalRating.getAsDouble());
+		// to delete all corresponding bids after order is completed
 		bidRepo.findByOrder(order).forEach(b -> bidRepo.delete(b));
 	}
 
@@ -208,7 +216,31 @@ public class OrderServices implements IOrderService {
 		order.setVendorComments(finalizeBidDTO.getVendorComments());
 		order.setOrderStatus(orderStatusRepo.findByOrderStatusType(OrderStatusType.PENDING));
 		order.setLockoutTimeInMinutes(0);
-		// to delete all corresponding bids after order is finalized
+		// send confirmation mail to Vendor and Customer
+//		String orderConfirmation = "Order ID - " + order.getId() + "\nVendor Name - " + order.getFinalVendor().getName()
+//				+ "\nCustomer Name - " + order.getCustomer().getName() + "\nFinal Amount - " + order.getFinalAmount()
+//				+ "\nCategory - " + order.getService().getServiceType() + "\nVendor Comments - "
+//				+ order.getVendorComments() + "\nCustomer Comments - " + order.getCustomerComments()
+//				+ "\nOrder Finalized Time - " + order.getOrderFinalizedTime().toLocalDate().toString() + " | "
+//				+ order.getOrderFinalizedTime().toLocalTime().toString();
+//		emailService.sendSimpleMail(new EmailDetails(order.getFinalVendor().getEmail(), orderConfirmation,
+//				"Konnect - Order Confirmation ID#" + order.getId(), null));
+//		emailService.sendSimpleMail(new EmailDetails(order.getCustomer().getEmail(), orderConfirmation,
+//				"Konnect - Order Confirmation ID#" + order.getId(), null));
+
+		// send HTML email async
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				emailService.sendHtmlMail(new EmailDetails(order.getFinalVendor().getEmail(),
+						EmailHelper.generateEmailBody(order), "Konnect - Order Confirmation ID#" + order.getId(), null));
+				emailService.sendHtmlMail(new EmailDetails(order.getCustomer().getEmail(), EmailHelper.generateEmailBody(order),
+						"Konnect - Order Confirmation ID#" + order.getId(), null));				
+			}
+		}, 0);
 		return order;
 	}
 
@@ -220,7 +252,8 @@ public class OrderServices implements IOrderService {
 
 	@Override
 	public Set<Order> findOrdersByCustomerAndStatus(long customerId, OrderStatusType orderStatusType) {
-		return orderRepo.findByCustomerAndOrderStatus(custRepo.findById(customerId).orElseThrow(()-> new ResourceNotFoundException("Invalid customer Id")),
+		return orderRepo.findByCustomerAndOrderStatus(
+				custRepo.findById(customerId).orElseThrow(() -> new ResourceNotFoundException("Invalid customer Id")),
 				orderStatusRepo.findByOrderStatusType(orderStatusType));
 	}
 
