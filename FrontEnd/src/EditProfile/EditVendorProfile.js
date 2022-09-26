@@ -160,6 +160,7 @@ function EditVendorProfile({ vendor }) {
 
                 <Grid item xs={12}>
                   <MultipleSelectChip
+                    setFormEdited={setFormEdited}
                     vendorServices={vendor.services}
                     editToggle={editToggle}
                     setSelectedServiceArr={setSelectedServiceArr}

@@ -9,6 +9,9 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +29,7 @@ public class Vendor extends BaseEntity {
 	private String name;
 	@Column(unique = true)
 	private String email;
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
 	@Column(unique = true)
 	private String contactNo;

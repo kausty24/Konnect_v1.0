@@ -1,14 +1,13 @@
-
-import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import Chip from '@mui/material/Chip';
-import axios from 'axios'
+import * as React from "react";
+import { useTheme } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Chip from "@mui/material/Chip";
+import axios from "axios";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -21,7 +20,6 @@ const MenuProps = {
   },
 };
 
-
 function getStyles(service, serviceName, theme) {
   return {
     fontWeight:
@@ -31,31 +29,38 @@ function getStyles(service, serviceName, theme) {
   };
 }
 
-
-
-export default function MultipleSelectChip({ vendorServices, setSelectedServiceArr, editToggle }) {
+export default function MultipleSelectChip({
+  vendorServices,
+  setSelectedServiceArr,
+  editToggle,
+  setFormEdited,
+}) {
   const theme = useTheme();
   const [serviceName, setServiceName] = React.useState([]);
   const [services, setServices] = React.useState([]);
 
   const handleChange = (event) => {
+    setFormEdited(true);
     const {
       target: { value },
     } = event;
     setServiceName(
       // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
+      typeof value === "string" ? value.split(",") : value
     );
-    setSelectedServiceArr(
-        typeof value === 'string' ? value.split(',') : value,
-    )
+    setSelectedServiceArr(typeof value === "string" ? value.split(",") : value);
   };
 
-  React.useEffect(()=> {
-    axios.get("http://localhost:8080/reg/list").then(response=> setServices(response.data)).catch(err=> console.log(err));
-    var vendorServiceArr = vendorServices.map(service => {return service["serviceType"]})
+  React.useEffect(() => {
+    axios
+      .get("http://localhost:8080/reg/list")
+      .then((response) => setServices(response.data))
+      .catch((err) => console.log(err));
+    var vendorServiceArr = vendorServices.map((service) => {
+      return service["serviceType"];
+    });
     setServiceName(vendorServiceArr);
-}, [])
+  }, []);
 
   return (
     <div>
@@ -69,14 +74,13 @@ export default function MultipleSelectChip({ vendorServices, setSelectedServiceA
           onChange={handleChange}
           input={<OutlinedInput id="select-multiple-chip" label="Services" />}
           renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
               {selected.map((value) => (
                 <Chip key={value} label={value} />
               ))}
             </Box>
           )}
           MenuProps={MenuProps}
-          
         >
           {services.map((service) => (
             <MenuItem
