@@ -21,7 +21,6 @@ function Navbar() {
               Login
             </Button>
             <Button color="inherit">About US</Button>
-            <Button color="inherit">Hire Service</Button>
           </Stack>
         </Toolbar>
       </AppBar>

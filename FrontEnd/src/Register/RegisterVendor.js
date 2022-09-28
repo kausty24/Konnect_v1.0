@@ -1,9 +1,25 @@
 import axios from "axios"
 import * as cities from '../Assets/States_Cities.json'
 import { useState, useEffect } from "react"
-import Select from "react-select"
 import { useNavigate } from 'react-router-dom'
 import data from "../Assets/States.json";
+
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import CssBaseline from '@mui/material/CssBaseline';
+import AppBar from '@mui/material/AppBar';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Link from '@mui/material/Link';
+import Button from '@mui/material/Button';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {InputLabel, Select, MenuItem, Avatar, FormControl  } from '@mui/material';
+import MultipleSelectChipRegister from "../Assets/MultipleSelectChipRegister";
+
+const theme = createTheme();
 
 function RegisterVendor(){
 
@@ -20,6 +36,7 @@ function RegisterVendor(){
     const [password, setPassword] = useState("");
     const [servicList, setServiceList] = useState([]);
     const [selectServices, setSelectedService] = useState([]);
+    
     var serviceArr = [];
     var selectedServiceArr = [];
     const navigate = useNavigate();
@@ -33,6 +50,18 @@ function RegisterVendor(){
         setServiceList(serviceArr);
     }, [])
 
+    function Copyright() {
+        return (
+          <Typography variant="body2" color="text.secondary" align="center">
+            {'Copyright © '}
+            <Link color="inherit" href="https://mui.com/">
+            Konnect
+            </Link>{' '}
+            {new Date().getFullYear()}
+            {'.'}
+          </Typography>
+        );
+      }
 
     function handleSubmit(e){
         e.preventDefault();
@@ -60,7 +89,6 @@ function RegisterVendor(){
     }
 
     function handleChange(e){
-
         e.preventDefault();
         setCityList(cities[e.target.value]) 
     }
@@ -70,162 +98,279 @@ function RegisterVendor(){
         selected.map( selectedOption => selectedServiceArr.push(selectedOption.value) )
         console.log(selectedServiceArr)
         setSelectedService(selectedServiceArr)
-
     }
 
     return(
-        <div className="container-fluid">
-            <h2>Register Page Vendor</h2>
-            
-            <form onSubmit={handleSubmit} method="post" className="form-control">
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Email" className="col-1">Email</label>
+        <div style= {{
+            backgroundImage: 'url(https://source.unsplash.com/random)',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+         }}>
+    
+        <ThemeProvider theme={theme} >
+        <CssBaseline/>
+        <AppBar
+          position="absolute"
+          color="default"
+          elevation={0}
+          sx={{
+            position: 'relative',
+            borderBottom: (t) => `1px solid ${t.palette.divider}`,
+          }}
+        >
+        </AppBar>
+        <Container component="main"  maxWidth="sm" sx={{ mb: 4 }}>
+        <form onSubmit={handleSubmit} >
+          <FormControl>
+          <Paper variant="outlined"  sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
+          <Grid item xs={12} align="center" >
+          <Avatar  sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <AppRegistrationIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5" align="center">
+              New Vendor Registration
+            </Typography>  
+            </Grid>
+      <Grid container spacing={3}>
+      
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            type="text"
+            id="name"
+            name="name"
+            label="Name"
+            fullWidth
+            autoComplete="name"
+            variant="standard"
+            onBlur={(e)=> {
+                if(e.target.value) {
+                    setValidateBool(validateBool&&true);
+                    setNameMsg("")
+                }
+                else{
+                    setValidateBool(validateBool&&false);
+                    setNameMsg("Name Cannot be Blank")
+                }}}
+          />
+          <div>
+                <span className="text-danger col-1">{nameMsg}</span>
+                </div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            id="email"
+            type="email"
+            name="email"
+            label="Email"
+            fullWidth
+            autoComplete="email"
+            variant="standard"
+            onBlur={(e)=> {e.preventDefault();
+                if(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(e.target.value)){
+                    setValidateBool(validateBool&&true);
+                    setEmailMsg("")
+                }  
+                else{
+                    setValidateBool(validateBool&&false);
+                    setEmailMsg("Email is invalid / empty");
+                }}}
+          />
+          <div>
+            <span className="text-danger col-1">{emailMsg}</span>
+          </div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+            <TextField
+                required
+                type="password"
+                id="password"
+                name="password"
+                label="Password"
+                fullWidth
+                autoComplete="confirmpassword"
+                variant="standard"
+                onBlur={(e) => {
+                    // /((?=.\d)(?=.[a-z])(?=.[#@$]).{5,20})/.test(e.target.value)
+                    if(true){
+                        setValidateBool(validateBool&&true);
+                        setPassword(e.target.value);
+                        setPasswordMsg("")
+                    }
+                    else{
+                        setValidateBool(validateBool&&false);
+                        setPasswordMsg("Password is Invalid")
+                    }
+                    }}
+            />
+            <div>
+                <span className="text-danger col-1">{passwordMsg}</span>
+            </div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+            <TextField
+                required
+                type="password"
+                id="confirmPassword"
+                label="Confirm Password"
+                fullWidth
+                autoComplete="password"
+                variant="standard"
+                onBlur={(e) => {
+                    if(e.target.value === password){
+                        setValidateBool(validateBool&&true);
+                        setConfPasswordMsg("")
+                    }
+                    else{
+                        setValidateBool(validateBool&&false);
+                        setConfPasswordMsg("Password Does not Match")
+                    }
+                }}
+            />
+            <div>
+                <span className="col-1 text-danger">{confPasswordMsg}</span>
+            </div>
+        </Grid>
+        
+        <Grid item xs={12} >
+            <MultipleSelectChipRegister setSelectedService={setSelectedService} />
+        </Grid>
+    
+        <Grid item xs={12} paddingtop-0>
+          <TextField
+            required
+            type="text"
+            id="addressLine1"
+            name="addressLine1"
+            label="Address line 1"
+            fullWidth
+            autoComplete="address-line1"
+            variant="standard"
+            onBlur={(e)=> {
+                if(e.target.value) {
+                    setValidateBool(validateBool&&true);
+                    setAddress1Msg("")
+                }
+                else{
+                    setValidateBool(validateBool&&false);
+                    setAddress1Msg("Address Cannot be Blank")
+                }}}                
+          />
+            <div>
+                <span className="text-danger col-1">{address1Msg}</span>
+            </div>
+        </Grid>
+        
+        <Grid item xs={12}>
+          <TextField
+            type="text"
+            id="addressLine2"
+            name="addressLine2"
+            label="Address line 2"
+            fullWidth
+            autoComplete="address-line2"
+            variant="standard"
+          />
+        </Grid>
+       
+        <Grid item xs={12} sm={6} >
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
+                      <InputLabel id="demo-multiple-chip-label">State</InputLabel>
+                      <Select 
+                          labelId="demo-multiple-chip-label"
+                          id="demo-multiple-chip"
+                          name="state"
+                          label="State"
+                          style={{ minWidth: 120 }}
+                          onChange={handleChange}
+                          input={<OutlinedInput id="select-multiple-chip" label="States" />}
+                      >   
+                          {data.states.map( state => {
+                          return <MenuItem value={state.state_name}>{state.state_name}</MenuItem>
+                              })}
+                      </Select>
+              </FormControl>
+                  </Grid>
 
-                    <input type="email" name="email" id="email" className="col-auto" onBlur={(e)=> {e.preventDefault();
-                        if(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(e.target.value)){
-                            setValidateBool(validateBool&&true);
-                            setEmailMsg("")
-                        }
-                            
-                        else{
-                            setValidateBool(validateBool&&false);
-                            setEmailMsg("Email is invalid");
+         <Grid item xs={12} sm={6}>
+           <FormControl sx={{ m: 1, minWidth: 200 }}>
+              <InputLabel id="demo-multiple-chip-label">City</InputLabel>
+                  <Select
+                      labelId="demo-multiple-chip-label"
+                      id="demo-multiple-chip-label"
+                      name="city"
+                      input={<OutlinedInput id="select-multiple-chip" label="City" />}
+                      style={{ minWidth: 120 }}
+                      label="City"
+                  >   
+                      {cityList.map( city => {
+                      return <MenuItem value={city.id}>{city.city}</MenuItem>
+                          })}
+                  </Select> 
+                  </FormControl>
+              </Grid>
+             
+        <Grid item xs={12} sm={6}>
+          <TextField
+           required
+           id="pincode"
+           name="pincode"
+           label="Pincode"
+           fullWidth
+           autoComplete="shipping postal-code"
+           variant="standard"
+          />
+            <div>
+                <span className="text-danger col-1">{pincodeMsg}</span>
+            </div>
+        </Grid>
 
-                        }
-                            
-                    } }/>
-                    <span className="text-danger col-1">{emailMsg}</span>
-
+        <Grid item xs={12} sm={6}>
+          <TextField
+            required
+            type="number" 
+            name="contactNo" 
+            id="contactNo"
+            label="Contact"
+            fullWidth
+            autoComplete="contact"
+            variant="standard"
+            onBlur={(e)=>{
+                if(e.target.value.length === 10){
+                    setValidateBool(validateBool&&true);
+                    setContactNoMsg("");
+                }
+                else if(e.target.value.length < 10 || e.target.value.length < 10){
+                    setValidateBool(validateBool&&false);
+                    setContactNoMsg("ContactNo should be 10 digits")
+                }
+            }}
+          />    
+            <div>
+                <span className="text-danger col-1">{contactNoMsg}</span>
+            </div>
+        </Grid>
+        <Grid item xs={12} sm={6}  >
+                    <Button 
+                fullWidth
+                variant="outlined"
+                sx={{ mt: 3, mb: 2 }} href="/login/vendor">Back to Login</Button>
+                </Grid>
+                <Grid item xs={12} sm={6} >
+                  <div>
+                     <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} >Register</Button>
                 </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Password" className="col-1">Password</label>
-                    <input type="password" name="password" id="password" className="col-auto" onBlur={(e) => {
-                        // /((?=.\d)(?=.[a-z])(?=.[#@$]).{5,20})/.test(e.target.value)
-                        if(true){
-                            setValidateBool(validateBool&&true);
-                            setPassword(e.target.value);
-                            setPasswordMsg("")
-                        }
-                        else{
-                            setValidateBool(validateBool&&false);
-                            setPasswordMsg("Password is Invalid")
-                        }
-                        }}/>
-                        <span className="text-danger col-1">{passwordMsg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="confirmPassword" className="col-1">Confirm Password</label>
-                    <input type="password" id="confirmPassword" className="col-auto" onBlur={(e) => {
-                        if(e.target.value === password){
-                            setValidateBool(validateBool&&true);
-                            setConfPasswordMsg("")
-                        }
-                        else{
-                            setValidateBool(validateBool&&false);
-                            setConfPasswordMsg("Password Does not Match")
-                        }
-                    }}/>
-                    <span className="col-1 text-danger">{confPasswordMsg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Name" className="col-1">Name</label>
-                    <input type="text" name="name" id="name" className="col-auto" onBlur={(e)=> {
-                        if(e.target.value) {
-                            setValidateBool(validateBool&&true);
-                            setNameMsg("")
-                        }
-                        else{
-                            setValidateBool(validateBool&&false);
-                            setNameMsg("Name Cannot be Blank")
-                        }
-                        }
-                        }/>
-                        <span className="text-danger col-1">{nameMsg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Services" className="col-1">Services</label>
-                    {/* <select name="service" id="services" multiple={true} className="col-1">
-                        {servicList.map((elem)=>
-                            <option key={elem} value={elem}>{elem}</option>
-                        )}
-                    </select> */}
-                    <div className="col-auto">
-                        <Select options={servicList} isMulti onChange={handleChangeSelect}/>
-
-                    </div>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Address Line 1" className="col-1">Address Line 1</label>
-                    <input type="text" name="addressLine1" id="addressLine1" className="col-auto" onBlur={(e)=> {
-                        if(e.target.value) {
-                            setValidateBool(validateBool&&true);
-                            setAddress1Msg("")
-                        }
-                        else{
-                            setValidateBool(validateBool&&false);
-                            setAddress1Msg("Address Cannot be Blank")
-                        }
-                        }
-                        }/>
-                        <span className="text-danger col-1">{address1Msg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Address Line 2" className="col-1">Address Line 2</label>
-                    <input type="text" name="addressLine2" id="addressLine2" className="col-auto" />
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="State" className="col-1">State</label>
-                    <select name="state" id="state" className="col-1" onChange={handleChange}>
-                        {stateList.map(elem => 
-                            <option value={elem.state_name}>{elem.state_name}</option>
-                            )}
-                    </select>
-                </div>
-                
-                <div className="row g-3 mb-3">
-                    <label htmlFor="City" className="col-1">City</label>
-                    <select name="city" id="city" className="col-1">
-                        {cityList.map(elem => 
-                            <option key={elem.id} value={elem.city}>{elem.city}</option>
-                            )}
-                    </select>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="Pincode" className="col-1">Pincode</label>
-                    <input type="number" name="pincode" id="pincode" className="col-auto" onBlur={(e)=>{
-                        if(e.target.value.length === 6){
-                            setValidateBool(validateBool&&true);
-                            setPincodeMsg("");
-                        }
-                        else if(e.target.value.length < 6 || e.target.value.length < 6){
-                            setValidateBool(validateBool&&false);
-                            setPincodeMsg("Pincode should be 6 digits")
-                        }
-                    }}/>
-                    <span className="text-danger col-1">{pincodeMsg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <label htmlFor="ContactNo" className="col-1">Contact No</label>
-                    <input type="number" name="contactNo" id="contactNo" className="col-auto" onBlur={(e)=>{
-                        if(e.target.value.length === 10){
-                            setValidateBool(validateBool&&true);
-                            setContactNoMsg("");
-                        }
-                        else if(e.target.value.length < 10 || e.target.value.length < 10){
-                            setValidateBool(validateBool&&false);
-                            setContactNoMsg("ContactNo should be 10 digits")
-                        }
-                    }}/>
-                    <span className="text-danger col-1">{contactNoMsg}</span>
-                </div>
-                <div className="row g-3 mb-3">
-                    <input type="submit" value="Register" className="btn-primary col-1" disabled={!validateBool}/>
-                </div>
-
-            </form>
-            
-            
-        </div>
+                </Grid>  
+          </Grid> 
+          </Paper>
+          <Copyright />
+          </FormControl>
+          </form>
+        </Container>
+      </ThemeProvider>
+      </div>
     )
 }
 
