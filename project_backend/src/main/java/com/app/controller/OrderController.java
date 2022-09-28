@@ -72,16 +72,18 @@ public class OrderController {
 	}
 
 	@PostMapping("/order/setcompleted")
-	public ResponseEntity<?> setOrderStatusCompleted(@RequestBody RatingDTO ratingDTO) {
-		orderService.setOrderStatusCompleted(ratingDTO.getRating(), ratingDTO.getOrderId());
-		return new ResponseEntity<>(null, HttpStatus.OK);
+	public ResponseEntity<String> setOrderStatusCompleted(@RequestBody RatingDTO ratingDTO) {
+		// payment is added in this method
+		com.razorpay.Order rzpOrder = orderService.setOrderStatusCompleted(ratingDTO.getRating(), ratingDTO.getOrderId());
+		System.out.println(rzpOrder);
+		return ResponseEntity.ok(rzpOrder.toString());
 	}
 
 	@PostMapping("/order/finalize")
 	public ResponseEntity<?> finalizeBid(@RequestBody @Valid PlaceBidDTO placeBidDTO) {
 		return new ResponseEntity<>(orderService.finalizeBid(placeBidDTO), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/order/getbiddetails/{orderId}")
 	public ResponseEntity<?> getAllBidsByOrder(@PathVariable long orderId) {
 		return new ResponseEntity<>(orderService.getAllBidsByOrder(orderId), HttpStatus.OK);

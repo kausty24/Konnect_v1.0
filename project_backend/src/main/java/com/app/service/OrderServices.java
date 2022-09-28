@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import org.json.JSONObject;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import com.app.entities.Order;
 import com.app.entities.OrderStatus;
 import com.app.entities.OrderStatusType;
 import com.app.entities.Vendor;
+import com.razorpay.*;
 
 @Service
 @Transactional
@@ -185,7 +187,7 @@ public class OrderServices implements IOrderService {
 	}
 
 	@Override
-	public void setOrderStatusCompleted(double rating, long orderId) {
+	public com.razorpay.Order setOrderStatusCompleted(double rating, long orderId) {
 		// TODO Auto-generated method stub
 		Order order = orderRepo.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order Not Found"));
 		order.setOrderStatus(orderStatusRepo.findByOrderStatusType(OrderStatusType.COMPLETED));
@@ -201,6 +203,24 @@ public class OrderServices implements IOrderService {
 			order.getFinalVendor().setRating(optionalRating.getAsDouble());
 		// to delete all corresponding bids after order is completed
 		bidRepo.findByOrder(order).forEach(b -> bidRepo.delete(b));
+		
+		// **add payment logic**
+		try {
+			RazorpayClient client = new RazorpayClient("rzp_test_MYie72SDxWMksD", "xdvszn2vTkNwdAAYUkFaGWoy");
+			JSONObject options = new JSONObject();
+			options.put("amount", order.getFinalAmount()*100); // for conversion from Rupee into paisa
+			options.put("currency", "INR");
+			options.put("receipt", "txn_123456");
+			
+			// create an order
+			com.razorpay.Order razorPayOrder = client.Orders.create(options);
+			System.out.println(razorPayOrder);
+			return razorPayOrder;
+			
+		} catch (RazorpayException e) {
+			throw new ResourceNotFoundException("Payment failed!!");
+		}
+		
 	}
 
 	@Override

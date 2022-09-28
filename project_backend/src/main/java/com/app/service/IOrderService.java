@@ -29,7 +29,7 @@ public interface IOrderService {
 	
 	void deleteBid(DeleteBidDTO deleteBidDTO);
 	
-	void setOrderStatusCompleted(double rating,long orderId);
+	com.razorpay.Order setOrderStatusCompleted(double rating,long orderId);
 	
 	Order finalizeBid(PlaceBidDTO finalizeBidDTO);
 	
